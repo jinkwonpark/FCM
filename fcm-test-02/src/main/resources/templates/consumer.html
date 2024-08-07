@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>FCM CONSUMER</title>
+</head>
+<body>
+<h1>FCM 푸시 알림 서비스</h1>
+<script src="https://www.gstatic.com/firebasejs/5.9.2/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.9.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.9.2/firebase-messaging.js"></script>
+<script th:inline="javascript">
+    let firebaseConfig = {
+        apiKey: "AIzaSyBxPVRnOX-SaklikO3p03ORwVdX7gTvS-I",
+        authDomain: "fcmtest-ce186.firebaseapp.com",
+        projectId: "fcmtest-ce186",
+        storageBucket: "fcmtest-ce186.appspot.com",
+        messagingSenderId: "594237624524",
+        appId: "1:594237624524:web:59056d9acd492e051db269",
+        measurementId: "G-HMXHQM84XG"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then(function (registration) {
+                console.log('Registration successful, scope is:', registration.scope);
+                messaging.useServiceWorker(registration);
+
+                messaging.requestPermission()
+                    .then(function () {
+                        console.log('Notification permission granted.');
+                        return messaging.getToken();
+                    })
+                    .then(function (token) {
+                        console.log('FCM Token:', token);
+                        // Token을 서버로 전송하거나 저장
+                    })
+                    .catch(function (err) {
+                        console.log('Unable to get permission to notify.', err);
+                    });
+
+                messaging.onMessage(function (payload) {
+                    console.log('Message received. ', payload);
+                    // 포그라운드 상태에서 알림 처리
+                    const notificationTitle = payload.notification.title;
+                    const notificationOptions = {
+                        body: payload.notification.body,
+                        icon: payload.notification.icon
+                    };
+
+                    registration.showNotification(notificationTitle, notificationOptions);
+                });
+            })
+            .catch(function (err) {
+                console.log('Service worker registration failed, error:', err);
+            });
+    }
+</script>
+</body>
+</html>
